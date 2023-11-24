@@ -1,8 +1,11 @@
-let s:config = #{labels: {}, opts:{}}
+let s:config = #{labels: {}, opts:{}, popupTimeMs:0}
+let s:timer = -1
+let s:previous_state = []
 
 function! skkeleton_state_popup#config(config) abort
   let s:config.labels = a:config ->get('labels', {})
   let s:config.opts   = a:config ->get('opts', {})
+  let s:config.popupTimeMs = a:config ->get('popupTimeMs', 0)
 endfunction
 
 function! skkeleton_state_popup#run() abort
@@ -35,11 +38,17 @@ function! s:create_or_update_popup_in_vim() abort
     call popup_move(s:popup_id, s:config.opts)
     call popup_settext(s:popup_id, label)
   else
-    let s:popup_id = popup_create(label, s:config.opts)
+    if s:state_changed()
+      let s:popup_id = popup_create(label, s:config.opts)
+      if s:config.popupTimeMs > 0
+        let s:timer = timer_start(s:config.popupTimeMs, {-> s:close_popup_in_vim()})
+      endif
+    endif
   endif
 endfunction
 
 function! s:close_popup_in_vim() abort
+  call timer_stop(s:timer)
   call popup_close(remove(s:, 'popup_id'))
 endfunction
 
@@ -62,11 +71,17 @@ function! s:create_or_update_popup_in_nvim() abort
   if has_key(s:, 'popup_id')
     call nvim_win_set_config(s:popup_id, s:config.opts)
   else
-    let s:popup_id = nvim_open_win(s:buf, 0, s:config.opts)
+    if s:state_changed()
+      let s:popup_id = nvim_open_win(s:buf, 0, s:config.opts)
+      if s:config.popupTimeMs > 0
+        let s:timer = timer_start(s:config.popupTimeMs, {-> s:close_popup_in_nvim()})
+      endif
+    endif
   endif
 endfunction
 
 function! s:close_popup_in_nvim() abort
+  call timer_stop(s:timer)
   call nvim_win_close(remove(s:, 'popup_id'), v:true)
   if has_key(s:, 'buf')
     execute 'bwipeout! ' .. s:buf
@@ -87,3 +102,12 @@ function! s:current_label() abort
   return s:config ->get('labels', {}) ->get(phase, {}) ->get(mode, '')
 endfunction
 
+function! s:state_changed() abort
+  let state = [g:skkeleton#mode, g:skkeleton#state ->get('phase', '')]
+  if state != s:previous_state
+    let s:previous_state = state
+    return v:true
+  else
+    return v:false
+  endif
+endfunction
