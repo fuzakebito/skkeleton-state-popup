@@ -3,9 +3,9 @@ let s:timer = -1
 let s:previous_state = []
 
 function! skkeleton_state_popup#config(config) abort
-  let s:config.labels = a:config ->get('labels', {})
-  let s:config.opts   = a:config ->get('opts', {})
-  let s:config.popupTimeMs = a:config ->get('popupTimeMs', 0)
+  let s:config.labels = a:config ->get('labels', s:config.labels)
+  let s:config.opts   = a:config ->get('opts', s:config.opts)
+  let s:config.popupTimeMs = a:config ->get('popupTimeMs', s:config.popupTimeMs)
 endfunction
 
 function! skkeleton_state_popup#run() abort
