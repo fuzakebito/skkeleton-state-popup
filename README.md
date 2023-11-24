@@ -40,6 +40,7 @@ call skkeleton_state_popup#config(#{
   \     'latin': '_A',
   \   },
   \   opts: #{pos: 'botleft', line: 'cursor+1', col: 'cursor', highlight: 'WildMenu'},
+  \   popupTimeMs: 1000,
   \ })
 call skkeleton_state_popup#run()
 ```
@@ -55,6 +56,7 @@ call skkeleton_state_popup#config(#{
   \     'latin': '_A',
   \   },
   \   opts: #{relative: 'cursor', col: 0, row: 1, anchor: 'NW', style: 'minimal'},
+  \   popupTimeMs: 1000,
   \ })
 call skkeleton_state_popup#run()
 ```
