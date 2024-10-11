@@ -27,6 +27,7 @@ endfunction
 
 function! s:create_or_update_popup_in_vim() abort
   let label = s:current_label()
+  let state_changed = s:state_changed()
   if empty(label)
     if has_key(s:, 'popup_id')
       call s:close_popup_in_vim()
@@ -38,11 +39,14 @@ function! s:create_or_update_popup_in_vim() abort
     call popup_move(s:popup_id, s:config.opts)
     call popup_settext(s:popup_id, label)
   else
-    if s:state_changed()
+    if state_changed
       let s:popup_id = popup_create(label, s:config.opts)
-      if s:config.popupTimeMs > 0
-        let s:timer = timer_start(s:config.popupTimeMs, {-> s:close_popup_in_vim()})
-      endif
+    endif
+  endif
+  if state_changed
+    if s:config.popupTimeMs > 0
+      call timer_stop(s:timer)
+      let s:timer = timer_start(s:config.popupTimeMs, {-> s:close_popup_in_vim()})
     endif
   endif
 endfunction
@@ -54,6 +58,7 @@ endfunction
 
 function! s:create_or_update_popup_in_nvim() abort
   let label = s:current_label()
+  let state_changed = s:state_changed()
   if empty(label)
     if has_key(s:, 'popup_id')
       call s:close_popup_in_nvim()
@@ -71,11 +76,14 @@ function! s:create_or_update_popup_in_nvim() abort
   if has_key(s:, 'popup_id')
     call nvim_win_set_config(s:popup_id, s:config.opts)
   else
-    if s:state_changed()
+    if state_changed
       let s:popup_id = nvim_open_win(s:buf, 0, s:config.opts)
-      if s:config.popupTimeMs > 0
-        let s:timer = timer_start(s:config.popupTimeMs, {-> s:close_popup_in_nvim()})
-      endif
+    endif
+  endif
+  if state_changed
+    if s:config.popupTimeMs > 0
+      call timer_stop(s:timer)
+      let s:timer = timer_start(s:config.popupTimeMs, {-> s:close_popup_in_nvim()})
     endif
   endif
 endfunction
